@@ -42,13 +42,18 @@ body {
 }
 
 .hero {
-    background: linear-gradient(135deg, var(--primary-dark), #2c3a5e);
+    background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+                url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1600&q=80') center/cover no-repeat;
     color: white;
-    padding: 80px 20px;
+    padding: 120px 20px;
     text-align: center;
     border-radius: 0 0 20px 20px;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
 }
-
 .card-custom {
     border: none;
     border-radius: 12px;

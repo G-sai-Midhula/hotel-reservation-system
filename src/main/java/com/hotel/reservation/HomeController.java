@@ -1,15 +1,17 @@
 package com.hotel.reservation;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import java.util.Map;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class HomeController {
@@ -20,21 +22,25 @@ public class HomeController {
     @Autowired
     private BookingRepository bookingRepository;
 
+    private boolean isLoggedIn(HttpSession session) {
+        return session.getAttribute("loggedInUser") != null;
+    }
+
     @GetMapping("/")
     public String home() {
         return "index";
     }
 
     @GetMapping("/rooms")
-    public String rooms(Model model) {
-        List<Room> roomList = roomRepository.findAll();
+    public String rooms(Model model, HttpSession session) {
+        if (!isLoggedIn(session)) return "redirect:/login";
 
+        List<Room> roomList = roomRepository.findAll();
         Map<String, Long> roomCounts = roomList.stream()
                 .filter(Room::isAvailable)
                 .collect(Collectors.groupingBy(Room::getRoomType, Collectors.counting()));
-
         Map<String, Double> roomPrices = roomList.stream()
-                .collect(Collectors.toMap(Room::getRoomType, Room::getPrice, (price1, price2) -> price1));
+                .collect(Collectors.toMap(Room::getRoomType, Room::getPrice, (p1, p2) -> p1));
 
         model.addAttribute("roomCounts", roomCounts);
         model.addAttribute("roomPrices", roomPrices);
@@ -42,7 +48,9 @@ public class HomeController {
     }
 
     @GetMapping("/booking")
-    public String bookingForm(Model model) {
+    public String bookingForm(Model model, HttpSession session) {
+        if (!isLoggedIn(session)) return "redirect:/login";
+
         List<Room> roomList = roomRepository.findAll().stream()
                 .filter(Room::isAvailable)
                 .collect(Collectors.toList());
@@ -55,7 +63,9 @@ public class HomeController {
                                @RequestParam String checkInDate,
                                @RequestParam String checkOutDate,
                                @RequestParam Long roomId,
+                               HttpSession session,
                                Model model) {
+        if (!isLoggedIn(session)) return "redirect:/login";
 
         Room room = roomRepository.findById(roomId).orElse(null);
 
@@ -78,16 +88,18 @@ public class HomeController {
     }
 
     @GetMapping("/my-bookings")
-    public String myBookings(Model model) {
+    public String myBookings(Model model, HttpSession session) {
+        if (!isLoggedIn(session)) return "redirect:/login";
+
         List<Booking> bookingList = bookingRepository.findAll();
         model.addAttribute("bookings", bookingList);
         return "my-bookings";
     }
 
-    // ===== ADMIN SECTION =====
-
     @GetMapping("/admin")
-    public String adminDashboard(Model model) {
+    public String adminDashboard(Model model, HttpSession session) {
+        if (!isLoggedIn(session)) return "redirect:/login";
+
         List<Room> roomList = roomRepository.findAll();
         List<Booking> bookingList = bookingRepository.findAll();
         model.addAttribute("rooms", roomList);
@@ -98,19 +110,22 @@ public class HomeController {
     @PostMapping("/admin/add-room")
     public String addRoom(@RequestParam String roomType,
                            @RequestParam double price,
-                           @RequestParam boolean available) {
+                           @RequestParam boolean available,
+                           HttpSession session) {
+        if (!isLoggedIn(session)) return "redirect:/login";
 
         Room room = new Room();
         room.setRoomType(roomType);
         room.setPrice(price);
         room.setAvailable(available);
         roomRepository.save(room);
-
         return "redirect:/admin";
     }
 
     @GetMapping("/admin/delete-room/{id}")
-    public String deleteRoom(@org.springframework.web.bind.annotation.PathVariable Long id) {
+    public String deleteRoom(@PathVariable Long id, HttpSession session) {
+        if (!isLoggedIn(session)) return "redirect:/login";
+
         roomRepository.deleteById(id);
         return "redirect:/admin";
     }
