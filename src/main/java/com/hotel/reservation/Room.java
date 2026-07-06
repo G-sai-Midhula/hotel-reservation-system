@@ -15,6 +15,7 @@ public class Room {
     private String roomType;
     private double price;
     private boolean available;
+    private String description;
 
     // Getters and Setters
     public Long getId() {
@@ -40,5 +41,11 @@ public class Room {
     }
     public void setAvailable(boolean available) {
         this.available = available;
+    }
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

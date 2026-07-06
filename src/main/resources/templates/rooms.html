@@ -14,33 +14,43 @@
             <a class="nav-link" href="/rooms">Rooms</a>
             <a class="nav-link" href="/booking">Book a Room</a>
             <a class="nav-link" href="/my-bookings">My Bookings</a>
-            <a class="nav-link" href="/admin">Admin</a>
-            <a class="nav-link" href="/login">Login</a>
-			<a class="nav-link" href="/logout">Logout</a>
+            <a class="nav-link" href="/admin"
+               th:if="${session.userRole == 'ADMIN'}">Admin</a>
+            <a class="nav-link" href="/logout">Logout</a>
         </div>
     </nav>
 
     <div class="container mt-5">
-        <h1 class="mb-4">Available Rooms</h1>
+        <h1 class="mb-2">Available Rooms</h1>
+        <p class="text-muted mb-4">Browse our selection of rooms and book your perfect stay.</p>
 
-        <table class="table table-striped table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th>Room Type</th>
-                    <th>Price</th>
-                    <th>Rooms Available</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="entry : ${roomCounts}">
-                    <td th:text="${entry.key}">Type</td>
-                    <td th:text="${roomPrices.get(entry.key)}">Price</td>
-                    <td>
-                        <span class="badge bg-success" th:text="${entry.value} + ' available'">0</span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="row">
+            <div th:each="entry : ${roomCounts}" class="col-md-4 mb-4">
+                <div class="card card-custom h-100">
+                    <div class="card-body">
+                        <h4 class="card-title fw-bold" th:text="${entry.key}">Room Type</h4>
+                        <p class="text-muted"
+                           th:text="${roomDescriptions.get(entry.key)} ?: 'Comfortable and well-equipped room.'">
+                            Description
+                        </p>
+                        <hr>
+                        <p class="mb-1">
+                            <strong>Price:</strong>
+                            ₹<span th:text="${roomPrices.get(entry.key)}">0</span> / night
+                        </p>
+                        <p class="mb-3">
+                            <span class="badge bg-success"
+                                  th:text="${entry.value} + ' rooms available'">0</span>
+                        </p>
+                        <a href="/booking" class="btn btn-gold w-100">Book Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${#maps.isEmpty(roomCounts)}" class="text-center mt-5">
+            <p class="text-muted">No rooms available at the moment. Please check back later.</p>
+        </div>
     </div>
 
 </body>

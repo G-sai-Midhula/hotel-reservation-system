@@ -39,17 +39,30 @@ public class HomeController {
         if (!isLoggedIn(session)) return "redirect:/login";
 
         List<Room> roomList = roomRepository.findAll();
-        Map<String, Long> roomCounts = roomList.stream()
-                .filter(Room::isAvailable)
-                .collect(Collectors.groupingBy(Room::getRoomType, Collectors.counting()));
-        Map<String, Double> roomPrices = roomList.stream()
-                .collect(Collectors.toMap(Room::getRoomType, Room::getPrice, (p1, p2) -> p1));
+
+        Map<String, Long> roomCounts = new java.util.HashMap<>();
+        Map<String, Double> roomPrices = new java.util.HashMap<>();
+        Map<String, String> roomDescriptions = new java.util.HashMap<>();
+
+        for (Room room : roomList) {
+            if (room.isAvailable()) {
+                roomCounts.put(room.getRoomType(),
+                    roomCounts.getOrDefault(room.getRoomType(), 0L) + 1);
+            }
+            if (!roomPrices.containsKey(room.getRoomType())) {
+                roomPrices.put(room.getRoomType(), room.getPrice());
+            }
+            if (!roomDescriptions.containsKey(room.getRoomType())
+                    && room.getDescription() != null) {
+                roomDescriptions.put(room.getRoomType(), room.getDescription());
+            }
+        }
 
         model.addAttribute("roomCounts", roomCounts);
         model.addAttribute("roomPrices", roomPrices);
+        model.addAttribute("roomDescriptions", roomDescriptions);
         return "rooms";
     }
-
     @GetMapping("/booking")
     public String bookingForm(Model model, HttpSession session) {
         if (!isLoggedIn(session)) return "redirect:/login";
@@ -115,6 +128,7 @@ public class HomeController {
     public String addRoom(@RequestParam String roomType,
                            @RequestParam double price,
                            @RequestParam boolean available,
+                           @RequestParam(required = false) String description,
                            HttpSession session) {
         if (!isLoggedIn(session)) return "redirect:/login";
         if (!isAdmin(session)) return "redirect:/rooms";
@@ -123,6 +137,7 @@ public class HomeController {
         room.setRoomType(roomType);
         room.setPrice(price);
         room.setAvailable(available);
+        room.setDescription(description);
         roomRepository.save(room);
         return "redirect:/admin";
     }
