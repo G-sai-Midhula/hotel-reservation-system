@@ -25,6 +25,9 @@ public class HomeController {
     private boolean isLoggedIn(HttpSession session) {
         return session.getAttribute("loggedInUser") != null;
     }
+    private boolean isAdmin(HttpSession session) {
+        return "ADMIN".equals(session.getAttribute("userRole"));
+    }
 
     @GetMapping("/")
     public String home() {
@@ -99,6 +102,7 @@ public class HomeController {
     @GetMapping("/admin")
     public String adminDashboard(Model model, HttpSession session) {
         if (!isLoggedIn(session)) return "redirect:/login";
+        if (!isAdmin(session)) return "redirect:/rooms"; 
 
         List<Room> roomList = roomRepository.findAll();
         List<Booking> bookingList = bookingRepository.findAll();
@@ -113,6 +117,7 @@ public class HomeController {
                            @RequestParam boolean available,
                            HttpSession session) {
         if (!isLoggedIn(session)) return "redirect:/login";
+        if (!isAdmin(session)) return "redirect:/rooms";
 
         Room room = new Room();
         room.setRoomType(roomType);
@@ -125,6 +130,7 @@ public class HomeController {
     @GetMapping("/admin/delete-room/{id}")
     public String deleteRoom(@PathVariable Long id, HttpSession session) {
         if (!isLoggedIn(session)) return "redirect:/login";
+        if (!isAdmin(session)) return "redirect:/rooms";
 
         roomRepository.deleteById(id);
         return "redirect:/admin";

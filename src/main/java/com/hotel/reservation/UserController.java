@@ -50,6 +50,7 @@ public class UserController {
         Optional<User> user = userRepository.findByUsername(username);
         if (user.isPresent() && user.get().getPassword().equals(password)) {
             session.setAttribute("loggedInUser", username);
+            session.setAttribute("userRole", user.get().getRole());
             return "redirect:/rooms";
         }
         model.addAttribute("error", "Invalid username or password");
